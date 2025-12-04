@@ -2,9 +2,7 @@
 import { ChromaClient, Collection, Metadata } from 'chromadb';
 
 const client = new ChromaClient({
-  path: process.env.NODE_ENV === 'production'
-    ? 'https://your-app.vercel.app'
-    : 'http://localhost:3000'
+  path: process.env.CHROMA_URL || 'http://localhost:3000/'
 });
 
 let collection: Collection | null = null;

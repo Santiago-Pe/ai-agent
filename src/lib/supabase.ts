@@ -21,6 +21,6 @@ export type Message = {
   conversation_id: string;
   role: 'user' | 'assistant';
   content: string;
-  tools_used: any[];
+  tools_used: any[]; // to do: handle better type
   created_at: string;
 };
