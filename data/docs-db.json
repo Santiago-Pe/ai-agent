@@ -1,0 +1,40 @@
+[
+  {
+    "id": "marketing",
+    "content": "# Estrategias de Marketing Digital\n\n## Email Marketing\n\nEl email marketing tiene un ROI promedio de 4200%. Las campañas segmentadas tienen 50% más de apertura que las no segmentadas.\n\n## SEO\n\nLas páginas en primera posición de Google reciben 33% del tráfico total. El 75% de usuarios no pasa de la primera página.\n\n## Redes Sociales\n\nInstagram tiene 2 billones de usuarios activos. LinkedIn es 277% más efectivo para lead generation que Facebook.\n",
+    "metadata": {
+      "filename": "marketing.md",
+      "type": "markdown",
+      "loaded_at": "2025-12-04T13:52:31.304Z",
+      "added_at": "2025-12-04T13:52:31.304Z"
+    },
+    "chunks": [
+      "# Estrategias de Marketing Digital",
+      "## Email Marketing",
+      "El email marketing tiene un ROI promedio de 4200%. Las campañas segmentadas tienen 50% más de apertura que las no segmentadas.",
+      "## SEO",
+      "Las páginas en primera posición de Google reciben 33% del tráfico total. El 75% de usuarios no pasa de la primera página.",
+      "## Redes Sociales",
+      "Instagram tiene 2 billones de usuarios activos. LinkedIn es 277% más efectivo para lead generation que Facebook."
+    ]
+  },
+  {
+    "id": "ventas",
+    "content": "# Proceso de Ventas\n\n## Prospección\n\nIdentificar leads calificados mediante scoring. Usar CRM para tracking automático.\n\n## Seguimiento\n\nRegla de oro: 7 touchpoints promedio para cerrar una venta B2B.\n48% de vendedores nunca hacen follow-up.\n\n## Cierre\n\nTécnicas efectivas: Assumptive close, Alternative choice, Urgency creation.\n",
+    "metadata": {
+      "filename": "ventas.md",
+      "type": "markdown",
+      "loaded_at": "2025-12-04T13:52:31.304Z",
+      "added_at": "2025-12-04T13:52:31.304Z"
+    },
+    "chunks": [
+      "# Proceso de Ventas",
+      "## Prospección",
+      "Identificar leads calificados mediante scoring. Usar CRM para tracking automático.",
+      "## Seguimiento",
+      "Regla de oro: 7 touchpoints promedio para cerrar una venta B2B.\n48% de vendedores nunca hacen follow-up.",
+      "## Cierre",
+      "Técnicas efectivas: Assumptive close, Alternative choice, Urgency creation."
+    ]
+  }
+]

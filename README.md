@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Agent - Product Engineer Challenge
 
-## Getting Started
+Asistente IA con autenticación conversacional, RAG, y herramientas integradas.
 
-First, run the development server:
+## 🚀 Demo Live
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+**URL:** [https://ai-agent-challenge.vercel.app](https://ai-agent-challenge.vercel.app)
+**Código demo:** `DEMO123`
+
+## 🛠 Features
+
+- ✅ **Autenticación conversacional** - Sin formularios, solo lenguaje natural
+- ✅ **Streaming en tiempo real** - Respuestas token-by-token con SSE
+- ✅ **RAG con Chroma** - Búsqueda semántica en documentos
+- ✅ **3 Herramientas integradas:**
+  - 🔍 Búsqueda en documentos
+  - 💾 Guardar información en DB
+  - 🧮 Calculadora matemática
+- ✅ **Transparencia total** - Visualización de tool executions
+- ✅ **Error handling robusto** - Recovery graceful de fallos
+- ✅ **Mobile responsive** - Funciona en todos los dispositivos
+
+## 🏗 Arquitectura
+
+```
+Frontend (Next.js) ←→ API Routes ←→ OpenAI GPT-4
+                          ↓
+                    ┌─────────────┐
+                    │ Tool Router │
+                    └─────────────┘
+                          ↓
+              ┌─────────────────────────┐
+              │  Chroma  │  Supabase   │
+              │ (Vector) │ (Postgres)  │
+              └─────────────────────────┘
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Quick Start
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# 1. Clone & Install
+git clone [repo-url]
+npm install
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# 2. Setup Environment
+cp .env.example .env.local
+# Configurar variables en .env.local
 
-## Learn More
+# 3. Initialize
+npm run init-docs  # Cargar documentos demo
+npm run dev        # Desarrollo local
+```
 
-To learn more about Next.js, take a look at the following resources:
+## 🌍 Deploy to Production
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+# Vercel (recomendado)
+vercel --prod
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Variables de entorno requeridas:
+# - OPENAI_API_KEY
+# - NEXT_PUBLIC_SUPABASE_URL
+# - NEXT_PUBLIC_SUPABASE_ANON_KEY
+# - SUPABASE_SERVICE_ROLE_KEY
+```
 
-## Deploy on Vercel
+## 🎯 Usage Examples
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**Autenticación:**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+> "Soy María, mi código es DEMO123"
+
+**RAG Query:**
+
+> "¿Qué dice sobre estrategias de marketing digital?"
+
+**Save Data:**
+
+> "Guardá este cliente: Juan Pérez, email juan@test.com, teléfono 123-456"
+
+**Calculate:**
+
+> "Calculá el 15% de descuento sobre $1200"
+
+---
+
+**Stack:** Next.js 14, OpenAI GPT-4, Supabase, Chroma, Vercel AI SDK
+**Author:** [Tu nombre]
+**Challenge:** Laburen.com Product Engineer Position

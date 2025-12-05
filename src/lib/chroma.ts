@@ -1,47 +1,106 @@
-// lib/chroma.ts
-import { ChromaClient, Collection, Metadata } from 'chromadb';
+import fs from 'fs';
 
-const client = new ChromaClient({
-  path: process.env.CHROMA_URL || 'http://localhost:3000/'
-});
+// Simulación de vector DB con archivos JSON
+const DOCS_DB_PATH = './data/docs-db.json';
 
-let collection: Collection | null = null;
+interface DocumentMetadata {
+  added_at: string;
+  source_document?: string;
+  similarity_score?: number;
+  [key: string]: string | number | boolean | undefined;
+}
+
+interface Document {
+  id: string;
+  content: string;
+  metadata: DocumentMetadata;
+  chunks: string[];
+}
+
+let documentsDB: Document[] = [];
 
 export async function initializeChroma() {
   try {
-    collection = await client.createCollection({
-      name: 'documents',
-      metadata: { 'hnsw:space': 'cosine' }
-    });
+    if (fs.existsSync(DOCS_DB_PATH)) {
+      const data = fs.readFileSync(DOCS_DB_PATH, 'utf-8');
+      documentsDB = JSON.parse(data);
+    } else {
+      documentsDB = [];
+      fs.writeFileSync(DOCS_DB_PATH, JSON.stringify(documentsDB, null, 2));
+    }
+    console.log(`📚 Loaded ${documentsDB.length} documents`);
+    return true;
   } catch (error) {
-    // Collection already exists
-    console.log(`Error: ${error}`)
-    collection = await client.getCollection({ name: 'documents' });
+    console.error('Error initializing docs DB:', error);
+    return false;
   }
-  return collection;
 }
 
-export async function addDocument(id: string, content: string, metadata: Metadata) {
-  if (!collection) await initializeChroma();
+export async function addDocument(id: string, content: string, metadata: Record<string, string | number | boolean>) {
+  // Chunking simple del contenido
+  const chunks = content
+    .split('\n\n')
+    .filter(chunk => chunk.trim().length > 0)
+    .map(chunk => chunk.trim());
 
-  await collection!.add({
-    ids: [id],
-    documents: [content],
-    metadatas: [metadata]
-  });
+  const document: Document = {
+    id,
+    content,
+    metadata: {
+      ...metadata,
+      added_at: new Date().toISOString()
+    },
+    chunks
+  };
+
+  // Remover documento existente si existe
+  documentsDB = documentsDB.filter(doc => doc.id !== id);
+  
+  // Agregar nuevo documento
+  documentsDB.push(document);
+  
+  // Guardar en archivo
+  fs.writeFileSync(DOCS_DB_PATH, JSON.stringify(documentsDB, null, 2));
+  
+  console.log(`✅ Added document: ${id}`);
 }
 
-export async function searchDocuments(query: string, nResults: number = 3) {
-  if (!collection) await initializeChroma();
+interface SearchResult {
+  content: string;
+  metadata: DocumentMetadata;
+  distance: number;
+}
 
-  const results = await collection!.query({
-    queryTexts: [query],
-    nResults
-  });
+export async function searchDocuments(query: string, nResults: number = 3): Promise<SearchResult[]> {
+  const queryLower = query.toLowerCase();
+  const results: SearchResult[] = [];
 
-  return results.documents[0]?.map((doc, idx) => ({
-    content: doc || '',
-    metadata: results.metadatas?.[0]?.[idx] || null,
-    distance: results.distances?.[0]?.[idx] || null
-  })) || [];
+  // Búsqueda simple por keywords (en lugar de embeddings)
+  for (const doc of documentsDB) {
+    for (const chunk of doc.chunks) {
+      const chunkLower = chunk.toLowerCase();
+      
+      // Calcular "similitud" simple por keywords comunes
+      const queryWords = queryLower.split(' ').filter(w => w.length > 2);
+      const matches = queryWords.filter(word => chunkLower.includes(word));
+      const similarity = matches.length / queryWords.length;
+      
+      if (similarity > 0.3) { // Threshold mínimo
+        results.push({
+          content: chunk,
+          metadata: {
+            ...doc.metadata,
+            source_document: doc.id,
+            similarity_score: similarity
+          },
+          distance: 1 - similarity
+        });
+      }
+    }
+  }
+
+  // Ordenar por similitud (menor distancia = mayor similitud)
+  results.sort((a, b) => a.distance - b.distance);
+  
+  return results.slice(0, nResults);
 }
