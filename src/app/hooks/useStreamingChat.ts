@@ -8,12 +8,12 @@ export function useStreamingChat() {
   const [currentStatus, setCurrentStatus] = useState<string>('');
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  // TODO: Explicar como funciona esta logica para entenderla
   const sendMessage = useCallback(async (
     content: string, 
     userId: string, 
     conversationId: string
   ) => {
-    // Agregar mensaje del usuario
     const userMessage: Message = {
       id: `user-${Date.now()}`,
       role: 'user',
@@ -26,7 +26,6 @@ export function useStreamingChat() {
     setIsLoading(true);
     setCurrentStatus('');
 
-    // Crear mensaje del asistente vacío
     const assistantMessage: Message = {
       id: `assistant-${Date.now()}`,
       role: 'assistant',
@@ -39,7 +38,7 @@ export function useStreamingChat() {
 
     try {
       abortControllerRef.current = new AbortController();
-
+      // TODO: mover este fetch a otro archivo
       const response = await fetch('/api/chat/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

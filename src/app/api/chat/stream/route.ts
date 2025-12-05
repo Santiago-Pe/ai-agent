@@ -67,6 +67,8 @@ export async function POST(req: Request): Promise<Response> {
             }
           }));
 
+          console.log('[Stream] Tools being sent to Claude:', JSON.stringify(claudeTools, null, 2));
+
           const response = await anthropic.messages.stream({
             model: 'claude-3-5-haiku-20241022',
             max_tokens: 2000,
@@ -79,6 +81,7 @@ export async function POST(req: Request): Promise<Response> {
           let assistantMessage = '';
           const toolCalls: ToolCall[] = [];
           let currentToolCall: Partial<ToolCall> | null = null;
+          let accumulatedJson = ''; // Acumular el JSON parcial
 
           // Procesar stream de Claude
           for await (const event of response) {
@@ -88,9 +91,15 @@ export async function POST(req: Request): Promise<Response> {
                   currentToolCall = {
                     id: event.content_block.id,
                     name: event.content_block.name,
-                    input: {}
+                    input: ({} as Record<string, unknown>)
                   };
-                  
+                  accumulatedJson = ''; // Reset del acumulador
+
+                  console.log('[Stream] Tool use started:', {
+                    name: event.content_block.name,
+                    id: event.content_block.id
+                  });
+
                   // Notificar que tool se está ejecutando
                   sendData({
                     type: 'status',
@@ -109,20 +118,41 @@ export async function POST(req: Request): Promise<Response> {
                     finished: false
                   });
                 } else if (event.delta.type === 'input_json_delta' && currentToolCall) {
-                  // Claude envía el input del tool de manera incremental
+                  // Acumular los fragmentos de JSON
+                  accumulatedJson += event.delta.partial_json || '';
+                  console.log('[Stream] Accumulated JSON so far:', accumulatedJson);
+
+                  // Intentar parsear el JSON acumulado (puede fallar si aún está incompleto)
                   try {
-                    const partialInput = JSON.parse(event.delta.partial_json || '{}');
-                    currentToolCall.input = { ...currentToolCall.input, ...partialInput };
-                  } catch {
-                    // Ignorar errores de parsing incremental
+                    const parsedInput = JSON.parse(accumulatedJson);
+                    currentToolCall.input = parsedInput;
+                    console.log('[Stream] Successfully parsed input:', currentToolCall.input);
+                  } catch (e) {
+                    // Es normal que falle mientras el JSON está incompleto
+                    console.log('[Stream] JSON still incomplete, waiting for more chunks...');
                   }
                 }
                 break;
 
               case 'content_block_stop':
                 if (currentToolCall && currentToolCall.id && currentToolCall.name) {
+                  // Último intento de parsear si no se parseó antes
+                  if (accumulatedJson && Object.keys(currentToolCall.input || {}).length === 0) {
+                    try {
+                      currentToolCall.input = JSON.parse(accumulatedJson);
+                      console.log('[Stream] Final parse of accumulated JSON:', currentToolCall.input);
+                    } catch (e) {
+                      console.error('[Stream] Failed to parse accumulated JSON:', accumulatedJson, e);
+                    }
+                  }
+
+                  console.log('[Stream] Tool call complete:', {
+                    name: currentToolCall.name,
+                    finalInput: currentToolCall.input
+                  });
                   toolCalls.push(currentToolCall as ToolCall);
                   currentToolCall = null;
+                  accumulatedJson = '';
                 }
                 break;
             }

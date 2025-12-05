@@ -1,19 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, Square, Paperclip } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ChatInputProps } from './interfaces';
+import { chatInputStyles } from './styles';
 
-interface ChatInputProps {
-  onSendMessage: (message: string) => void;
-  isLoading: boolean;
-  onStopGeneration: () => void;
-  disabled?: boolean;
-  placeholder?: string;
-}
-
-export function ChatInput({ 
-  onSendMessage, 
-  isLoading, 
-  onStopGeneration, 
+export function ChatInput({
+  onSendMessage,
+  isLoading,
+  onStopGeneration,
   disabled = false,
   placeholder = "Escribe tu mensaje..."
 }: ChatInputProps) {
@@ -25,7 +19,7 @@ export function ChatInput({
     const textarea = textareaRef.current;
     if (textarea) {
       textarea.style.height = 'auto';
-      const newHeight = Math.min(textarea.scrollHeight, 120); // Max 120px
+      const newHeight = Math.min(textarea.scrollHeight, 120);
       textarea.style.height = `${newHeight}px`;
     }
   }, [input]);
@@ -38,7 +32,7 @@ export function ChatInput({
     setInput('');
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -50,38 +44,31 @@ export function ChatInput({
   };
 
   return (
-    <div className="border-t bg-white p-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="relative flex items-end gap-3">
-          {/* Textarea */}
-          <div className="flex-1 relative">
+    <div className={chatInputStyles.container}>
+      <div className={chatInputStyles.innerContainer}>
+        <div className={chatInputStyles.inputWrapper}>
+          <div className={chatInputStyles.textareaWrapper}>
             <textarea
               ref={textareaRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
+              onKeyDown={handleKeyDown}
               placeholder={placeholder}
               disabled={disabled}
-              className={cn(
-                "w-full p-3 pr-12 border border-gray-300 rounded-xl resize-none",
-                "focus:ring-2 focus:ring-blue-500 focus:border-transparent",
-                "disabled:opacity-50 disabled:cursor-not-allowed",
-                "min-h-[52px] max-h-[120px]"
-              )}
+              className={chatInputStyles.textareaBase}
               rows={1}
             />
 
-            {/* Attachment button placeholder */}
-            <button className="absolute right-3 top-3 p-1 text-gray-400 hover:text-gray-600 transition-colors">
+            <button className={chatInputStyles.attachmentButton}>
               <Paperclip className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Send/Stop button */}
+          {/* TODO: modularizar button */}
           {isLoading ? (
             <button
               onClick={handleStop}
-              className="p-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors flex-shrink-0"
+              className={chatInputStyles.stopButton}
               title="Detener generación"
             >
               <Square className="w-5 h-5" />
@@ -91,10 +78,10 @@ export function ChatInput({
               onClick={handleSend}
               disabled={!input.trim() || disabled}
               className={cn(
-                "p-3 rounded-xl transition-colors flex-shrink-0",
+                chatInputStyles.sendButton.base,
                 input.trim() && !disabled
-                  ? "bg-blue-500 text-white hover:bg-blue-600"
-                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  ? chatInputStyles.sendButton.active
+                  : chatInputStyles.sendButton.disabled
               )}
               title="Enviar mensaje"
             >
@@ -103,8 +90,8 @@ export function ChatInput({
           )}
         </div>
 
-        {/* Tips */}
-        <div className="mt-2 text-xs text-gray-500 text-center">
+        {/* TODO: modularizar tips */}
+        <div className={chatInputStyles.tipsContainer}>
           <span>Presiona Enter para enviar, Shift+Enter para nueva línea</span>
         </div>
       </div>

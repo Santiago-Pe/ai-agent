@@ -50,6 +50,7 @@ export const tools = [
   }
 ];
 
+// TODO: mover las interfaces a otro archivo.
 // Tipos para los argumentos de las herramientas
 export interface SearchDocumentsArgs {
   query: string;
@@ -66,21 +67,21 @@ export interface CalculateArgs {
 
 export type ToolArgs = SearchDocumentsArgs | SaveDataArgs | CalculateArgs;
 
-// Ejecutor de herramientas
-export async function executeTool(name: string, args: ToolArgs, userId: string) {
+// Ejecutor de herramientas - AGREGAR LOGS
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function executeTool(name: string, args: any, userId: string) {
+  console.log(`[executeTool] ${name} called with args:`, JSON.stringify(args, null, 2)); // ← DEBUG
+  
   switch (name) {
     case 'searchDocuments':
-      return await handleSearchDocuments((args as SearchDocumentsArgs).query);
+      return await handleSearchDocuments(args.query);
 
     case 'saveData':
-      return await handleSaveData(
-        (args as SaveDataArgs).type,
-        (args as SaveDataArgs).data,
-        userId
-      );
+      return await handleSaveData(args.type, args.data, userId);
 
     case 'calculate':
-      return await handleCalculate((args as CalculateArgs).expression);
+      console.log('[executeTool] Calculate args:', args); // ← DEBUG ESPECÍFICO
+      return await handleCalculate(args.expression);
 
     default:
       throw new Error(`Herramienta no encontrada: ${name}`);
@@ -142,8 +143,25 @@ async function handleSaveData(type: string, data: Record<string, unknown>, userI
   }
 }
 
-async function handleCalculate(expression: string) {
+async function handleCalculate(expression: string | undefined) {
+  console.log('[handleCalculate] Received expression:', expression); // ← DEBUG
+
   try {
+    // Validar que expression existe
+    if (!expression || typeof expression !== 'string') {
+      console.log('[handleCalculate] Invalid expression:', { expression, type: typeof expression });
+      return {
+        success: false,
+        error: 'Expresión matemática requerida',
+        message: 'No se proporcionó una expresión para calcular',
+        debug: { received: expression, type: typeof expression } // ← DEBUG INFO
+      };
+    }
+
+    console.log('[calculate] Procesando:', expression); // Debug
+
+    
+    
     // Convertir expresiones comunes
     const expr = expression
       .toLowerCase()
@@ -151,10 +169,17 @@ async function handleCalculate(expression: string) {
       .replace(/sqrt\(([^)]+)\)/g, 'Math.sqrt($1)')
       .replace(/\^/g, '**')
       .replace(/[^0-9+\-*/().Math\s]/g, '');
-
-    // Evaluación segura de la expresión matemática
+    
+    console.log('[calculate] Expresión procesada:', expr); // Debug
+    
+    // Verificar que la expresión no esté vacía después del procesamiento
+    if (!expr.trim()) {
+      throw new Error('Expresión vacía después del procesamiento');
+    }
+    
+    // Evaluación segura
     const result: number = Function(`"use strict"; return (${expr})`)();
-
+    
     if (!Number.isFinite(result)) {
       throw new Error('Resultado inválido');
     }
@@ -166,16 +191,15 @@ async function handleCalculate(expression: string) {
       message: `Resultado: ${result}`
     };
   } catch (error) {
-    console.error('[calculate] Error al procesar cálculo:', {
-      expression,
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined
+    console.error('[calculate] Error al procesar cálculo:', { 
+      expression, 
+      error: String(error),
+      stack: error instanceof Error ? error.stack : undefined 
     });
     return {
       success: false,
       error: 'Expresión matemática inválida',
-      message: 'No pude procesar el cálculo solicitado',
-      details: error instanceof Error ? error.message : String(error)
+      message: 'No pude procesar el cálculo solicitado'
     };
   }
 }

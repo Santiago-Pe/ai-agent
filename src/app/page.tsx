@@ -4,10 +4,9 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Bot, LogOut, RotateCcw } from 'lucide-react';
 import { useStreamingChat } from './hooks/useStreamingChat';
 import { AuthState } from './types/chat';
-import { AuthChat } from './components/AuthChat';
-import { Message } from './components/Message';
-import { StatusIndicator } from './components/StatusIndicator';
-import { ChatInput } from './components/ChatInput';
+import { AuthChat, ChatInput, Message, StatusIndicator } from './components';
+
+
 
 export default function ChatPage() {
   const [authState, setAuthState] = useState<AuthState>({
@@ -26,12 +25,14 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  // Declarar función antes de usarla en useEffect
   const loadConversationHistory = useCallback(async (conversationId: string) => {
     try {
+
+      // to do: pasar este fetch a otro archivo.
       const response = await fetch(`/api/conversations/${conversationId}/history`);
       if (response.ok) {
         const { messages: historyMessages } = await response.json();
+        // to do: a donde cargo los history message, por consola?
         // Cargar mensajes anteriores si es necesario
         console.log('History loaded:', historyMessages);
       }
@@ -57,17 +58,14 @@ export default function ChatPage() {
 
     await sendMessage(content, authState.user.id, authState.conversationId);
   };
-
   const handleLogout = () => {
     setAuthState({ isAuthenticated: false });
     clearMessages();
   };
-
   const handleClearChat = () => {
     clearMessages();
   };
 
-  // Si no está autenticado, mostrar pantalla de login
   if (!authState.isAuthenticated) {
     return (
       <AuthChat 
@@ -77,8 +75,10 @@ export default function ChatPage() {
     );
   }
 
+  // TODO: modularizar styles
   return (
     <div className="flex flex-col h-screen bg-gray-50">
+      {/* TODO: modularizar header */}
       {/* Header */}
       <header className="bg-white border-b px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -111,12 +111,14 @@ export default function ChatPage() {
         </div>
       </header>
 
+      {/* TODO: modularizar message continaer */}
       {/* Messages Container */}
       <div 
         ref={messagesContainerRef}
         className="flex-1 overflow-y-auto"
       >
         <div className="max-w-4xl mx-auto">
+          {/* TODO: modularizar welcome message */}
           {/* Welcome Message */}
           {messages.length === 0 && (
             <div className="p-8 text-center">
@@ -133,7 +135,7 @@ export default function ChatPage() {
                 <div className="flex items-start gap-2 p-3 bg-white rounded-lg border">
                   <span className="text-lg">🔍</span>
                   <div>
-                    <div className="font-medium text-sm">Buscar información</div>
+                    <div className="font-medium text-sm text-gray-900">Buscar información</div>
                     <div className="text-xs text-gray-600">
                       ¿Qué dice sobre marketing digital?
                     </div>
@@ -142,7 +144,7 @@ export default function ChatPage() {
                 <div className="flex items-start gap-2 p-3 bg-white rounded-lg border">
                   <span className="text-lg">💾</span>
                   <div>
-                    <div className="font-medium text-sm">Guardar datos</div>
+                    <div className="font-medium text-sm text-gray-900">Guardar datos</div>
                     <div className="text-xs text-gray-600">
                       Guardá: Cliente nuevo - Juan Pérez
                     </div>
@@ -151,7 +153,7 @@ export default function ChatPage() {
                 <div className="flex items-start gap-2 p-3 bg-white rounded-lg border">
                   <span className="text-lg">🧮</span>
                   <div>
-                    <div className="font-medium text-sm">Realizar cálculos</div>
+                    <div className="font-medium text-sm text-gray-900">Realizar cálculos</div>
                     <div className="text-xs text-gray-600">
                       Calculá el 15% de descuento sobre $1200
                     </div>
