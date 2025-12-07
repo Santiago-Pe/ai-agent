@@ -6,5 +6,6 @@ CREATE TABLE messages ( id UUID DEFAULT gen_random_uuid() PRIMARY KEY, conversat
 );
 CREATE TABLE saved_data ( id UUID DEFAULT gen_random_uuid() PRIMARY KEY, user_id UUID REFERENCES users(id), data_type TEXT NOT NULL, content JSONB NOT NULL, created_at TIMESTAMP DEFAULT NOW()
 );
-- Insertar usuario demo
+
+-- Insertar usuario demo
 INSERT INTO users (name, access_code) VALUES ('Demo User', 'DEMO123');
