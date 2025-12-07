@@ -1,8 +1,6 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 
-
-
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'your-secret-key-change-in-production'
 );
@@ -13,7 +11,12 @@ const COOKIE_OPTIONS = {
   secure: process.env.NODE_ENV === 'production',
   sameSite: 'lax' as const,
   maxAge: 60 * 60 * 24 * 7, // 7 días
-  path: '/'
+  path: '/',
+  // En producción, Vercel maneja el dominio automáticamente
+  // pero aseguramos que no haya problemas con subdominios
+  ...(process.env.NODE_ENV === 'production' && {
+    domain: undefined // Deja que Next.js/Vercel lo maneje
+  })
 };
 
 export interface SessionData {
@@ -45,26 +48,32 @@ export async function createSession(data: Omit<SessionData, 'createdAt'>): Promi
  */
 export async function verifySession(token: string): Promise<SessionData | null> {
   try {
-    console.log("[AUTH] Verificando token:", token.slice(0, 20) + "...");
-
     const { payload } = await jwtVerify(token, JWT_SECRET);
-
-    console.log("[AUTH] Payload decodificado:", payload);
-
     return payload as unknown as SessionData;
   } catch (error) {
-    console.error('[AUTH] Error verificando token:', error);
+    console.error('[Auth] Error verificando token:', error);
     return null;
   }
 }
-
 
 /**
  * Guarda el token en una cookie httpOnly
  */
 export async function setSessionCookie(token: string): Promise<void> {
   const cookieStore = await cookies();
+
+  console.log('[AUTH] 🍪 Intentando setear cookie:', {
+    name: COOKIE_NAME,
+    options: COOKIE_OPTIONS,
+    nodeEnv: process.env.NODE_ENV,
+    tokenLength: token.length
+  });
+
   cookieStore.set(COOKIE_NAME, token, COOKIE_OPTIONS);
+
+  // Verificar que se seteó correctamente
+  const verification = cookieStore.get(COOKIE_NAME);
+  console.log('[AUTH] 🍪 Cookie seteada correctamente:', !!verification);
 }
 
 /**
@@ -72,14 +81,19 @@ export async function setSessionCookie(token: string): Promise<void> {
  */
 export async function getSessionToken(): Promise<string | null> {
   const cookieStore = await cookies();
+  const allCookies = cookieStore.getAll();
   const cookie = cookieStore.get(COOKIE_NAME);
 
-  console.log("[AUTH] Cookies recibidas:", cookieStore.getAll());
-  console.log("[AUTH] Cookie específica:", cookie);
+  console.log('[AUTH] 🍪 Intentando leer cookie:', {
+    buscando: COOKIE_NAME,
+    totalCookies: allCookies.length,
+    cookiesPresentes: allCookies.map(c => c.name),
+    encontrada: !!cookie,
+    nodeEnv: process.env.NODE_ENV
+  });
 
   return cookie?.value || null;
 }
-
 
 /**
  * Obtiene la sesión actual desde la cookie

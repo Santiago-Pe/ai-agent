@@ -29,11 +29,11 @@ export default function ChatPage() {
   const loadConversationHistory = useCallback(async (conversationId: string) => {
     try {
 
-      // to do: pasar este fetch a otro archivo.
+      // TODO: pasar este fetch a otro archivo.
       const response = await fetch(`/api/conversations/${conversationId}/history`);
       if (response.ok) {
         const { messages: historyMessages } = await response.json();
-        // to do: a donde cargo los history message, por consola?
+        // TODO: a donde cargo los history message, por consola?
         // Cargar mensajes anteriores si es necesario
         console.log('History loaded:', historyMessages);
       }
@@ -53,7 +53,7 @@ useEffect(() => {
     try {
       const response = await fetch('/api/auth/session', {
         method: 'GET',
-        credentials: 'include' // 👈 SIN ESTO NO LLEGA TU COOKIE
+        credentials: 'include'
       });
 
       const data = await response.json();

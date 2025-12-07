@@ -2,6 +2,7 @@ export const runtime = "nodejs";
 
 import { supabaseAdmin } from '@/lib/supabase';
 import { createSession, setSessionCookie } from '@/lib/auth';
+import { createSetCookieHeader } from '@/lib/cookie-utils';
 
 export async function POST(req: Request) {
   try {
@@ -75,11 +76,25 @@ export async function POST(req: Request) {
       displayName: name
     });
 
+    console.log('[VERIFY] 🔐 Token creado, length:', token.length);
+
     await setSessionCookie(token);
 
-    console.log('[Auth] ✅ Sesión creada para:', name, '- Token guardado en cookie');
+    console.log('[VERIFY] ✅ Sesión creada para:', name, '- Cookie debería estar seteada');
 
-    return Response.json({
+    // Crear header Set-Cookie manualmente como respaldo
+    const cookieHeader = createSetCookieHeader(token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7,
+      path: '/'
+    });
+
+    console.log('[VERIFY] 🍪 Set-Cookie header creado:', cookieHeader.substring(0, 100) + '...');
+
+    // Crear respuesta con header Set-Cookie explícito
+    const response = Response.json({
       success: true,
       message: `¡Perfecto ${name}! Ya podés preguntarme lo que necesites.`,
       user: {
@@ -89,7 +104,15 @@ export async function POST(req: Request) {
       },
       conversationId: conversation.id,
       sessionId: sessionId
+    }, {
+      headers: {
+        'Set-Cookie': cookieHeader
+      }
     });
+
+    console.log('[VERIFY] 📤 Enviando respuesta con status 200 y Set-Cookie header');
+
+    return response;
 
   } catch (error) {
     console.error('Auth error:', error);
