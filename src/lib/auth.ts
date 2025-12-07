@@ -1,6 +1,14 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 
+console.log("ENV CHECK", {
+  url: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+  anon: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+role: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+  anthropic: !!process.env.ANTHROPIC_API_KEY
+});
+
+
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'your-secret-key-change-in-production'
 );
