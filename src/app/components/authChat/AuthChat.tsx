@@ -24,6 +24,7 @@ export function AuthChat({ onAuth }: AuthChatProps) {
       // TODO: mover este fetch a otro archivo
       const response = await fetch('/api/auth/verify', {
         method: 'POST',
+        credentials: 'include', 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input })
       });

@@ -48,28 +48,33 @@ export default function ChatPage() {
   }, [messages, currentStatus]);
 
   // Verificar sesión al cargar la página
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const response = await fetch('/api/auth/session');
-        const data = await response.json();
+useEffect(() => {
+  const checkSession = async () => {
+    try {
+      const response = await fetch('/api/auth/session', {
+        method: 'GET',
+        credentials: 'include' // 👈 SIN ESTO NO LLEGA TU COOKIE
+      });
 
-        if (data.authenticated && data.user) {
-          setAuthState({
-            isAuthenticated: true,
-            user: data.user,
-            conversationId: data.conversationId
-          });
-        }
-      } catch (error) {
-        console.error('Error checking session:', error);
-      } finally {
-        setIsCheckingSession(false);
+      const data = await response.json();
+
+      if (data.authenticated && data.user) {
+        setAuthState({
+          isAuthenticated: true,
+          user: data.user,
+          conversationId: data.conversationId
+        });
       }
-    };
+    } catch (error) {
+      console.error('Error checking session:', error);
+    } finally {
+      setIsCheckingSession(false);
+    }
+  };
 
-    checkSession();
-  }, []);
+  checkSession();
+}, []);
+
 
   // Cargar conversación existente si hay sesión
   useEffect(() => {
