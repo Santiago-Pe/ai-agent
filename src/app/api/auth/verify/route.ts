@@ -4,12 +4,6 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { createSession, setSessionCookie } from '@/lib/auth';
 
 export async function POST(req: Request) {
-   console.log("ENV CHECK", {
-    url: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-    anon: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    role: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-    anthropic: !!process.env.ANTHROPIC_API_KEY,
-  });
   try {
     const { message } = await req.json();
 

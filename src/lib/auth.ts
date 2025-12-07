@@ -1,12 +1,6 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 
-console.log("ENV CHECK", {
-  url: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-  anon: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-role: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-  anthropic: !!process.env.ANTHROPIC_API_KEY
-});
 
 
 const JWT_SECRET = new TextEncoder().encode(
@@ -51,13 +45,19 @@ export async function createSession(data: Omit<SessionData, 'createdAt'>): Promi
  */
 export async function verifySession(token: string): Promise<SessionData | null> {
   try {
+    console.log("[AUTH] Verificando token:", token.slice(0, 20) + "...");
+
     const { payload } = await jwtVerify(token, JWT_SECRET);
+
+    console.log("[AUTH] Payload decodificado:", payload);
+
     return payload as unknown as SessionData;
   } catch (error) {
-    console.error('[Auth] Error verificando token:', error);
+    console.error('[AUTH] Error verificando token:', error);
     return null;
   }
 }
+
 
 /**
  * Guarda el token en una cookie httpOnly
@@ -73,8 +73,13 @@ export async function setSessionCookie(token: string): Promise<void> {
 export async function getSessionToken(): Promise<string | null> {
   const cookieStore = await cookies();
   const cookie = cookieStore.get(COOKIE_NAME);
+
+  console.log("[AUTH] Cookies recibidas:", cookieStore.getAll());
+  console.log("[AUTH] Cookie específica:", cookie);
+
   return cookie?.value || null;
 }
+
 
 /**
  * Obtiene la sesión actual desde la cookie
