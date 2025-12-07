@@ -61,10 +61,22 @@ export async function addDocumentsBatch(
   try {
     console.log(`[VectorSearch] Procesando ${documents.length} documentos en batch...`);
 
-    // Generar todos los embeddings en paralelo (más eficiente)
-    const embeddings = await Promise.all(
-      documents.map(doc => generateEmbedding(doc.content))
-    );
+    // Generar embeddings con delay para evitar rate limit (3 RPM = 1 cada 20s)
+    const embeddings: number[][] = [];
+    const delayMs = 21000; // 21 segundos entre requests (3 RPM limit)
+
+    for (let i = 0; i < documents.length; i++) {
+      console.log(`[VectorSearch] Generando embedding ${i + 1}/${documents.length}...`);
+
+      const embedding = await generateEmbedding(documents[i].content);
+      embeddings.push(embedding);
+
+      // Esperar solo si no es el último documento
+      if (i < documents.length - 1) {
+        console.log(`[VectorSearch] Esperando 21s (rate limit: 3 RPM)...`);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+    }
 
     // Preparar datos para inserción
     const rows = documents.map((doc, i) => ({

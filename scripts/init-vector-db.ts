@@ -1,6 +1,9 @@
+import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
-import { addDocumentsBatch, clearAllDocuments, countDocuments } from '../src/lib/vector-search';
+
+// Cargar variables de entorno desde .env.local PRIMERO
+dotenv.config({ path: path.join(process.cwd(), '.env.local') });
 
 /**
  * Script para cargar documentos markdown en la base vectorial
@@ -8,6 +11,9 @@ import { addDocumentsBatch, clearAllDocuments, countDocuments } from '../src/lib
  */
 async function loadDocuments() {
   try {
+    // Importar dinámicamente después de cargar variables de entorno
+    const { addDocumentsBatch, clearAllDocuments, countDocuments } = await import('../src/lib/vector-search');
+
     console.log('🚀 Iniciando carga de documentos...\n');
 
     // 1. Limpiar base de datos existente (opcional)

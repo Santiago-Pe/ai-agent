@@ -21,7 +21,8 @@ export async function generateEmbedding(text: string): Promise<number[]> {
       throw new Error('No se recibió embedding de Voyage AI');
     }
 
-    return response.data[0].embedding;
+    const embedding = response.data[0].embedding || []
+    return embedding;
   } catch (error) {
     console.error('[Voyage] Error generando embedding:', error);
     throw error;
@@ -43,7 +44,8 @@ export async function generateQueryEmbedding(query: string): Promise<number[]> {
       throw new Error('No se recibió embedding de Voyage AI');
     }
 
-    return response.data[0].embedding || [];
+    const embedding = response.data[0].embedding || []
+    return embedding;
   } catch (error) {
     console.error('[Voyage] Error generando query embedding:', error);
     throw error;
@@ -64,8 +66,10 @@ export async function generateEmbeddingsBatch(texts: string[]): Promise<number[]
     if (!response.data || response.data.length === 0) {
       throw new Error('No se recibieron embeddings de Voyage AI');
     }
-
-    return response.data.map(item => item.embedding) || [];
+    
+    const embedding = response.data.map(item => item.embedding)
+    return embedding || [];
+    
   } catch (error) {
     console.error('[Voyage] Error generando embeddings batch:', error);
     throw error;
