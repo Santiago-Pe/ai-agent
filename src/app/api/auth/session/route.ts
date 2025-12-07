@@ -1,3 +1,5 @@
+export const runtime = "nodejs";
+
 import { getSession } from '@/lib/auth';
 
 /**

@@ -1,3 +1,5 @@
+export const runtime = "nodejs";
+
 import { getConversationHistory } from '@/lib/contex-manager';
 import { supabaseAdmin } from '@/lib/supabase';
 

@@ -1,3 +1,5 @@
+export const runtime = "nodejs";
+
 import { anthropic } from '@/lib/claude';
 
 export async function GET() {

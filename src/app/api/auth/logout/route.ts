@@ -1,4 +1,7 @@
+export const runtime = "nodejs";
+
 import { clearSession } from '@/lib/auth';
+
 
 /**
  * POST /api/auth/logout

@@ -1,3 +1,5 @@
+export const runtime = "nodejs";
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { anthropic, systemPrompt } from '@/lib/claude';
 import { tools, executeTool, type ToolArgs } from '@/lib/tools';

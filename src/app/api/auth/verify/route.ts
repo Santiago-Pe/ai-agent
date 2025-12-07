@@ -1,3 +1,5 @@
+export const runtime = "nodejs";
+
 import { supabaseAdmin } from '@/lib/supabase';
 import { createSession, setSessionCookie } from '@/lib/auth';
 
