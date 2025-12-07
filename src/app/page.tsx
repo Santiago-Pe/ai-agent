@@ -12,6 +12,7 @@ export default function ChatPage() {
   const [authState, setAuthState] = useState<AuthState>({
     isAuthenticated: false
   });
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
 
   const {
     messages,
@@ -46,6 +47,30 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, currentStatus]);
 
+  // Verificar sesión al cargar la página
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const response = await fetch('/api/auth/session');
+        const data = await response.json();
+
+        if (data.authenticated && data.user) {
+          setAuthState({
+            isAuthenticated: true,
+            user: data.user,
+            conversationId: data.conversationId
+          });
+        }
+      } catch (error) {
+        console.error('Error checking session:', error);
+      } finally {
+        setIsCheckingSession(false);
+      }
+    };
+
+    checkSession();
+  }, []);
+
   // Cargar conversación existente si hay sesión
   useEffect(() => {
     if (authState.isAuthenticated && authState.conversationId) {
@@ -58,19 +83,38 @@ export default function ChatPage() {
 
     await sendMessage(content, authState.user.id, authState.conversationId);
   };
-  const handleLogout = () => {
-    setAuthState({ isAuthenticated: false });
-    clearMessages();
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      setAuthState({ isAuthenticated: false });
+      clearMessages();
+    } catch (error) {
+      console.error('Error during logout:', error);
+      setAuthState({ isAuthenticated: false });
+      clearMessages();
+    }
   };
   const handleClearChat = () => {
     clearMessages();
   };
 
+  // Mostrar loading mientras verificamos la sesión
+  if (isCheckingSession) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-50">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 text-sm">Verificando sesión...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!authState.isAuthenticated) {
     return (
-      <AuthChat 
-        onAuth={setAuthState} 
-        isLoading={false} 
+      <AuthChat
+        onAuth={setAuthState}
+        isLoading={false}
       />
     );
   }
