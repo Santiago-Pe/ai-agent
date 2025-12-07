@@ -1,22 +1,23 @@
 import { supabaseAdmin } from '@/lib/supabase';
+import { createSession, setSessionCookie } from '@/lib/auth';
 
 export async function POST(req: Request) {
   try {
     const { message } = await req.json();
-    
+
     // Extraer nombre y código del mensaje natural
     const authPattern = /(?:soy|me llamo|mi nombre es)\s+([^,\n]+)(?:,?\s*(?:mi\s*)?(?:código|code|clave)(?:\s*es)?\s*([A-Za-z0-9]+))?/i;
     const codePattern = /(?:código|code|clave)(?:\s*es)?\s*([A-Za-z0-9]+)/i;
-    
+
     let name = '';
     let code = '';
-    
+
     const authMatch = authPattern.exec(message);
     if (authMatch) {
       name = authMatch[1]?.trim() || '';
       code = authMatch[2]?.trim() || '';
     }
-    
+
     // Si no encontró código en el primer match, buscar por separado
     if (!code) {
       const codeMatch = codePattern.exec(message);
@@ -49,8 +50,8 @@ export async function POST(req: Request) {
     }
 
     // Crear o obtener conversación
-    const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+    const sessionId = `session_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`;
+
     const { data: conversation, error: convError } = await supabaseAdmin
       .from('conversations')
       .insert({
@@ -63,6 +64,18 @@ export async function POST(req: Request) {
     if (convError) {
       throw new Error('Error creando conversación');
     }
+
+    // ✅ Crear JWT y guardar en cookie httpOnly
+    const token = await createSession({
+      userId: user.id,
+      conversationId: conversation.id,
+      name: user.name,
+      displayName: name
+    });
+
+    await setSessionCookie(token);
+
+    console.log('[Auth] ✅ Sesión creada para:', name, '- Token guardado en cookie');
 
     return Response.json({
       success: true,

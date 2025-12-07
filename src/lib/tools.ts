@@ -1,5 +1,6 @@
-import { searchDocuments } from './chroma';
+import { searchDocuments } from './vector-search';
 import { supabaseAdmin } from './supabase';
+import { evaluate } from 'mathjs';
 
 export const tools = [
   {
@@ -144,7 +145,7 @@ async function handleSaveData(type: string, data: Record<string, unknown>, userI
 }
 
 async function handleCalculate(expression: string | undefined) {
-  console.log('[handleCalculate] Received expression:', expression); // ← DEBUG
+  console.log('[handleCalculate] Received expression:', expression);
 
   try {
     // Validar que expression existe
@@ -154,52 +155,58 @@ async function handleCalculate(expression: string | undefined) {
         success: false,
         error: 'Expresión matemática requerida',
         message: 'No se proporcionó una expresión para calcular',
-        debug: { received: expression, type: typeof expression } // ← DEBUG INFO
+        debug: { received: expression, type: typeof expression }
       };
     }
 
-    console.log('[calculate] Procesando:', expression); // Debug
+    console.log('[calculate] Procesando:', expression);
 
-    
-    
-    // Convertir expresiones comunes
-    const expr = expression
+    // Convertir expresiones en lenguaje natural a formato matemático
+    let processedExpr = expression
       .toLowerCase()
-      .replace(/(\d+)%\s*de\s*(\d+)/g, '($1/100)*$2')
-      .replace(/sqrt\(([^)]+)\)/g, 'Math.sqrt($1)')
-      .replace(/\^/g, '**')
-      .replace(/[^0-9+\-*/().Math\s]/g, '');
-    
-    console.log('[calculate] Expresión procesada:', expr); // Debug
-    
-    // Verificar que la expresión no esté vacía después del procesamiento
-    if (!expr.trim()) {
+      // "15% de 1200" → "(15/100) * 1200"
+      .replace(/(\d+)\s*%\s*de\s*(\d+)/gi, '($1/100) * $2')
+      // "raiz de X" o "raíz de X" → "sqrt(X)"
+      .replace(/ra[ií]z\s+de\s+(\d+)/gi, 'sqrt($1)')
+      // Potencias: "2 elevado a 3" → "2^3"
+      .replace(/(\d+)\s+elevado\s+a\s+(\d+)/gi, '$1^$2');
+
+    console.log('[calculate] Expresión procesada:', processedExpr);
+
+    // Validar que no esté vacía
+    if (!processedExpr.trim()) {
       throw new Error('Expresión vacía después del procesamiento');
     }
-    
-    // Evaluación segura
-    const result: number = Function(`"use strict"; return (${expr})`)();
-    
-    if (!Number.isFinite(result)) {
-      throw new Error('Resultado inválido');
+
+    // ✅ EVALUACIÓN SEGURA con mathjs (sin eval ni Function)
+    // mathjs previene inyección de código y solo permite operaciones matemáticas
+    const result = evaluate(processedExpr);
+
+    // Validar resultado
+    if (typeof result !== 'number' || !Number.isFinite(result)) {
+      throw new Error('Resultado inválido: ' + String(result));
     }
+
+    console.log('[calculate] Resultado:', result);
 
     return {
       success: true,
       result: result,
       operation: expression,
+      processedExpression: processedExpr,
       message: `Resultado: ${result}`
     };
   } catch (error) {
-    console.error('[calculate] Error al procesar cálculo:', { 
-      expression, 
+    console.error('[calculate] Error al procesar cálculo:', {
+      expression,
       error: String(error),
-      stack: error instanceof Error ? error.stack : undefined 
+      stack: error instanceof Error ? error.stack : undefined
     });
     return {
       success: false,
       error: 'Expresión matemática inválida',
-      message: 'No pude procesar el cálculo solicitado'
+      message: 'No pude procesar el cálculo solicitado',
+      details: error instanceof Error ? error.message : String(error)
     };
   }
 }
