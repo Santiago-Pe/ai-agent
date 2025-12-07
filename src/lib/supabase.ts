@@ -21,6 +21,7 @@ export type Message = {
   conversation_id: string;
   role: 'user' | 'assistant';
   content: string;
-  tools_used: any[]; // to do: handle better type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  tools_used: any[]; // TODO: handle better type
   created_at: string;
 };

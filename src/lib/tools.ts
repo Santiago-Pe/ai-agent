@@ -162,7 +162,7 @@ async function handleCalculate(expression: string | undefined) {
     console.log('[calculate] Procesando:', expression);
 
     // Convertir expresiones en lenguaje natural a formato matemático
-    let processedExpr = expression
+    const processedExpr = expression
       .toLowerCase()
       // "15% de 1200" → "(15/100) * 1200"
       .replace(/(\d+)\s*%\s*de\s*(\d+)/gi, '($1/100) * $2')

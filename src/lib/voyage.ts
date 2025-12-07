@@ -67,8 +67,11 @@ export async function generateEmbeddingsBatch(texts: string[]): Promise<number[]
       throw new Error('No se recibieron embeddings de Voyage AI');
     }
     
-    const embedding = response.data.map(item => item.embedding)
-    return embedding || [];
+    const embeddings = response.data
+      .map(item => item.embedding)
+      .filter((e): e is number[] => Array.isArray(e));
+
+    return embeddings;
     
   } catch (error) {
     console.error('[Voyage] Error generando embeddings batch:', error);
