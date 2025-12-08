@@ -61,19 +61,7 @@ export async function verifySession(token: string): Promise<SessionData | null> 
  */
 export async function setSessionCookie(token: string): Promise<void> {
   const cookieStore = await cookies();
-
-  console.log('[AUTH] 🍪 Intentando setear cookie:', {
-    name: COOKIE_NAME,
-    options: COOKIE_OPTIONS,
-    nodeEnv: process.env.NODE_ENV,
-    tokenLength: token.length
-  });
-
   cookieStore.set(COOKIE_NAME, token, COOKIE_OPTIONS);
-
-  // Verificar que se seteó correctamente
-  const verification = cookieStore.get(COOKIE_NAME);
-  console.log('[AUTH] 🍪 Cookie seteada correctamente:', !!verification);
 }
 
 /**
@@ -81,17 +69,7 @@ export async function setSessionCookie(token: string): Promise<void> {
  */
 export async function getSessionToken(): Promise<string | null> {
   const cookieStore = await cookies();
-  const allCookies = cookieStore.getAll();
   const cookie = cookieStore.get(COOKIE_NAME);
-
-  console.log('[AUTH] 🍪 Intentando leer cookie:', {
-    buscando: COOKIE_NAME,
-    totalCookies: allCookies.length,
-    cookiesPresentes: allCookies.map(c => c.name),
-    encontrada: !!cookie,
-    nodeEnv: process.env.NODE_ENV
-  });
-
   return cookie?.value || null;
 }
 

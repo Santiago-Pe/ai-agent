@@ -6,16 +6,6 @@ import { createSetCookieHeader } from '@/lib/cookie-utils';
 
 export async function POST(req: Request) {
   try {
-    console.log('[VERIFY] 🚀 Iniciando verificación de auth');
-    console.log('[VERIFY] 🔧 ENV check:', {
-      hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-      supabaseUrlPrefix: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 40),
-      hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-      serviceKeyPrefix: process.env.SUPABASE_SERVICE_ROLE_KEY?.substring(0, 20),
-      serviceKeyLength: process.env.SUPABASE_SERVICE_ROLE_KEY?.length,
-      nodeEnv: process.env.NODE_ENV
-    });
-
     const { message } = await req.json();
 
     // Extraer nombre y código del mensaje natural
@@ -48,29 +38,13 @@ export async function POST(req: Request) {
     }
 
     // Verificar código en Supabase
-    console.log('[VERIFY] 🔍 Buscando usuario con código:', code.toUpperCase());
-
     const { data: user, error } = await supabaseAdmin
       .from('users')
       .select('*')
       .eq('access_code', code.toUpperCase())
       .single();
 
-    console.log('[VERIFY] 📊 Resultado de búsqueda:', {
-      encontrado: !!user,
-      error: error?.message,
-      errorCode: error?.code,
-      userId: user?.id
-    });
-
     if (error || !user) {
-      console.error('[VERIFY] ❌ Error buscando usuario:', {
-        code: code.toUpperCase(),
-        error: error,
-        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30),
-        hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY
-      });
-
       return Response.json({
         success: false,
         message: `No reconozco el código "${code}". Verificá que esté correcto o contactá soporte.`,
@@ -102,11 +76,7 @@ export async function POST(req: Request) {
       displayName: name
     });
 
-    console.log('[VERIFY] 🔐 Token creado, length:', token.length);
-
     await setSessionCookie(token);
-
-    console.log('[VERIFY] ✅ Sesión creada para:', name, '- Cookie debería estar seteada');
 
     // Crear header Set-Cookie manualmente como respaldo
     const cookieHeader = createSetCookieHeader(token, {
@@ -117,10 +87,8 @@ export async function POST(req: Request) {
       path: '/'
     });
 
-    console.log('[VERIFY] 🍪 Set-Cookie header creado:', cookieHeader.substring(0, 100) + '...');
-
     // Crear respuesta con header Set-Cookie explícito
-    const response = Response.json({
+    return Response.json({
       success: true,
       message: `¡Perfecto ${name}! Ya podés preguntarme lo que necesites.`,
       user: {
@@ -135,10 +103,6 @@ export async function POST(req: Request) {
         'Set-Cookie': cookieHeader
       }
     });
-
-    console.log('[VERIFY] 📤 Enviando respuesta con status 200 y Set-Cookie header');
-
-    return response;
 
   } catch (error) {
     console.error('Auth error:', error);

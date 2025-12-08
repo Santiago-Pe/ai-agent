@@ -6,16 +6,8 @@ import { getSession } from '@/lib/auth';
  * GET /api/auth/session
  * Obtiene la sesión actual desde la cookie JWT
  */
-export async function GET(req: Request) {
+export async function GET() {
   try {
-    // Log de headers para debugging
-    const cookieHeader = req.headers.get('cookie');
-    console.log('[SESSION] 📥 Headers recibidos:', {
-      cookie: cookieHeader,
-      hasCookie: !!cookieHeader,
-      userAgent: req.headers.get('user-agent')?.substring(0, 50)
-    });
-
     const session = await getSession();
 
     if (!session) {
