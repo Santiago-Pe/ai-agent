@@ -9,7 +9,10 @@ export async function POST(req: Request) {
     console.log('[VERIFY] 🚀 Iniciando verificación de auth');
     console.log('[VERIFY] 🔧 ENV check:', {
       hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      supabaseUrlPrefix: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 40),
       hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      serviceKeyPrefix: process.env.SUPABASE_SERVICE_ROLE_KEY?.substring(0, 20),
+      serviceKeyLength: process.env.SUPABASE_SERVICE_ROLE_KEY?.length,
       nodeEnv: process.env.NODE_ENV
     });
 
